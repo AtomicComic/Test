@@ -3,17 +3,26 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const client_id = '29e011cdf67041baa13d003873608c04';
   const client_secret = 'c615959b63d04e8f959b01800bf7ef4b';
-  console.log(client_id);
+
+  // Create the authorization header by encoding client_id and client_secret
+  const authString = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
+
+  const authOptions = {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${authString}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials'
+    })
+  };
+
   try {
     // Fetch the access token from Spotify
-    const response = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `grant_type=client_credentials&client_id=${client_id}&client_secret=${client_secret}`,
-    });
+    const response = await fetch('https://accounts.spotify.com/api/token', authOptions);
     const data = await response.json();
+
     if (response.ok) {
       // Return the access token in the response
       return NextResponse.json({ token: data.access_token });

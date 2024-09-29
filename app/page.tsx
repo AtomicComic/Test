@@ -12,6 +12,7 @@ export default function Home() {
   const [crowdMood, setCrowdMood] = useState('Analyzing...');
   const [upcomingTracks, setUpcomingTracks] = useState([]);
   const [spotifyToken, setSpotifyToken] = useState('');
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0); // Track index in upcomingTracks
 
   useEffect(() => {
     fetchSpotifyToken();
@@ -53,6 +54,14 @@ export default function Home() {
     }
   };
 
+  const handleNextTrack = () => {
+    if (currentTrackIndex < upcomingTracks.length - 1) {
+      // Update the current track to the next one in the list
+      setCurrentTrackIndex(currentTrackIndex + 1);
+      setCurrentTrack(upcomingTracks[currentTrackIndex + 1]);
+    }
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
@@ -73,6 +82,16 @@ export default function Home() {
           {spotifyToken && <SpotifyWebPlayer token={spotifyToken} />}
           {currentTrack && <TrackInfo track={currentTrack} />}
         </div>
+
+        {/* Button to display the next track */}
+        {upcomingTracks.length > 0 && currentTrackIndex < upcomingTracks.length - 1 && (
+          <button 
+            onClick={handleNextTrack} 
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+          >
+            Next Song
+          </button>
+        )}
 
         <UpcomingTracks tracks={upcomingTracks} />
       </div>
