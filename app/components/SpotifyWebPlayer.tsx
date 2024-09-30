@@ -1,23 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Script from 'next/script';
 
-const track = {
-    name: "",
+interface Track {
+    name: string;
     album: {
-        images: [
-            { url: "" }
-        ]
-    },
-    artists: [
-        { name: "" }
-    ]
+        images: Array<{ url: string }>;
+    };
+    artists: Array<{ name: string }>;
 }
 
-function WebPlayback({ token }) {
-    const [is_paused, setPaused] = useState(false);
-    const [is_active, setActive] = useState(false);
-    const [current_track, setTrack] = useState(track);
-    const playerRef = useRef(null);
+const initialTrack: Track = {
+    name: "",
+    album: {
+        images: [{ url: "" }]
+    },
+    artists: [{ name: "" }]
+};
+
+interface WebPlaybackProps {
+    token: string;
+}
+
+function WebPlayback({ token }: WebPlaybackProps) {
+    const [isPaused, setPaused] = useState<boolean>(false);
+    const [isActive, setActive] = useState<boolean>(false);
+    const [currentTrack, setTrack] = useState<Track>(initialTrack);
+    const playerRef = useRef<Spotify.Player | null>(null);
 
     const initializePlayer = () => {
         const player = new window.Spotify.Player({
@@ -56,9 +64,9 @@ function WebPlayback({ token }) {
         if (window.Spotify) {
             initializePlayer();
         }
-    }, []);
+    }, [token]);
 
-    if (!is_active) {
+    if (!isActive) {
         return (
             <div className="container">
                 <div className="main-wrapper">
@@ -70,21 +78,21 @@ function WebPlayback({ token }) {
         return (
             <div className="container">
                 <div className="main-wrapper">
-                    <img src={current_track.album.images[0].url} className="now-playing__cover" alt="" />
+                    <img src={currentTrack.album.images[0].url} className="now-playing__cover" alt="" />
 
                     <div className="now-playing__side">
-                        <div className="now-playing__name">{current_track.name}</div>
-                        <div className="now-playing__artist">{current_track.artists[0].name}</div>
+                        <div className="now-playing__name">{currentTrack.name}</div>
+                        <div className="now-playing__artist">{currentTrack.artists[0].name}</div>
 
-                        <button className="btn-spotify" onClick={() => { playerRef.current.previousTrack() }} >
+                        <button className="btn-spotify" onClick={() => { playerRef.current?.previousTrack() }} >
                             &lt;&lt;
                         </button>
 
-                        <button className="btn-spotify" onClick={() => { playerRef.current.togglePlay() }} >
-                            {is_paused ? "PLAY" : "PAUSE"}
+                        <button className="btn-spotify" onClick={() => { playerRef.current?.togglePlay() }} >
+                            {isPaused ? "PLAY" : "PAUSE"}
                         </button>
 
-                        <button className="btn-spotify" onClick={() => { playerRef.current.nextTrack() }} >
+                        <button className="btn-spotify" onClick={() => { playerRef.current?.nextTrack() }} >
                             &gt;&gt;
                         </button>
                     </div>
@@ -94,7 +102,11 @@ function WebPlayback({ token }) {
     }
 }
 
-export default function SpotifyWebPlayer({ token }) {
+interface SpotifyWebPlayerProps {
+    token: string;
+}
+
+export default function SpotifyWebPlayer({ token }: SpotifyWebPlayerProps) {
     return (
         <>
             <Script
@@ -109,4 +121,13 @@ export default function SpotifyWebPlayer({ token }) {
             <WebPlayback token={token} />
         </>
     );
+}
+
+// Add this to resolve the `window.Spotify` type error
+declare global {
+    interface Window {
+        Spotify: {
+            Player: new (options: Spotify.PlayerInit) => Spotify.Player;
+        };
+    }
 }
