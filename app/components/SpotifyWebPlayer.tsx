@@ -12,18 +12,17 @@ interface SpotifyPlayer {
 }
 
 interface SpotifySDK {
-    Player: {
-        new (options: {
-            name: string;
-            getOAuthToken: (cb: (token: string) => void) => void;
-            volume: number;
-        }): SpotifyPlayer;
-    };
+    Player: new (options: {
+        name: string;
+        getOAuthToken: (cb: (token: string) => void) => void;
+        volume: number;
+    }) => SpotifyPlayer;
 }
 
 declare global {
     interface Window {
         Spotify: SpotifySDK;
+        onSpotifyWebPlaybackSDKReady: () => void;
     }
 }
 
@@ -62,15 +61,15 @@ function WebPlayback({ token }: WebPlaybackProps) {
 
         playerRef.current = player;
 
-        player.addListener('ready', ({ device_id }) => {
+        player.addListener('ready', ({ device_id }: { device_id: string }) => {
             console.log('Ready with Device ID', device_id);
         });
 
-        player.addListener('not_ready', ({ device_id }) => {
+        player.addListener('not_ready', ({ device_id }: { device_id: string }) => {
             console.log('Device ID has gone offline', device_id);
         });
 
-        player.addListener('player_state_changed', (state => {
+        player.addListener('player_state_changed', ((state: any) => {
             if (!state) {
                 return;
             }
