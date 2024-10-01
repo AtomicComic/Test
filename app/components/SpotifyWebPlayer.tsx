@@ -1,6 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Script from 'next/script';
 
+// Custom type definitions for Spotify SDK
+interface SpotifyPlayer {
+    addListener(event: string, callback: (state: any) => void): void;
+    connect(): Promise<boolean>;
+    getCurrentState(): Promise<any>;
+    nextTrack(): Promise<void>;
+    previousTrack(): Promise<void>;
+    togglePlay(): Promise<void>;
+}
+
+interface SpotifySDK {
+    Player: {
+        new (options: {
+            name: string;
+            getOAuthToken: (cb: (token: string) => void) => void;
+            volume: number;
+        }): SpotifyPlayer;
+    };
+}
+
+declare global {
+    interface Window {
+        Spotify: SpotifySDK;
+    }
+}
+
 interface Track {
     name: string;
     album: {
@@ -25,7 +51,7 @@ function WebPlayback({ token }: WebPlaybackProps) {
     const [isPaused, setPaused] = useState<boolean>(false);
     const [isActive, setActive] = useState<boolean>(false);
     const [currentTrack, setTrack] = useState<Track>(initialTrack);
-    const playerRef = useRef<Spotify.Player | null>(null);
+    const playerRef = useRef<SpotifyPlayer | null>(null);
 
     const initializePlayer = () => {
         const player = new window.Spotify.Player({
@@ -121,13 +147,4 @@ export default function SpotifyWebPlayer({ token }: SpotifyWebPlayerProps) {
             <WebPlayback token={token} />
         </>
     );
-}
-
-// Add this to resolve the `window.Spotify` type error
-declare global {
-    interface Window {
-        Spotify: {
-            Player: new (options: Spotify.PlayerInit) => Spotify.Player;
-        };
-    }
 }
